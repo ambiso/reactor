@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <title>Reactor Simulation</title>
+        <meta charset="UTF-8">
+        <style>
+         body {
+             max-width: 20em;
+             margin: auto;
+         }
+        </style>
+    </head>
+
+    <body>
+        <div>Temperature: <span class="temp"></span> </div>
+        <div>Power produced: <span class="totalPower"></span> </div>
+        <div>Xeon level: <span class="xeonLevel"></span>%</div>
+        <div>Target rod position:</div> <input type="range" min="0" max="100" value="0" class="targetRodPos">
+        <div>Rod position:</div> <input type="range" min="0" max="100" value="0" class="rodPos">
+    </body>
+    <script>
+     let temp = 0;
+     let totalPower = 0;
+     let frame = 0;
+     let rodPos = 0;
+     let meltdown = false;
+     let xeon_damp = 1;
+
+     function draw() {
+         let tempOutput = document.querySelector(".temp");
+         tempOutput.textContent = temp.toFixed(3);
+
+         let totalPowerOutput = document.querySelector(".totalPower");
+         totalPowerOutput.textContent = totalPower.toFixed(3);
+
+         let rodPosOutput = document.querySelector(".rodPos");
+         rodPosOutput.value = rodPos.toFixed(3);
+
+         let xeonLevelOutput = document.querySelector(".xeonLevel");
+         level = ((1-xeon_damp)*100).toFixed(3);
+         xeonLevelOutput.textContent = level;
+     }
+
+     function update() {
+         if (meltdown) {
+             return;
+         }
+         frame += 1;
+
+         let power = 0.01 * temp;
+         totalPower += power;
+
+         temp += (rodPos * rodPos) / 400;
+         temp *= xeon_damp;
+         temp -= power;
+         temp = Math.max(0, temp);
+
+         xeon_damp -= rodPos/100000000;
+         xeon_damp = Math.max(0, xeon_damp);
+
+         if (frame % 100 == 0) {
+             let rodPosInput = document.querySelector(".targetRodPos");
+             rodPos += Math.sign(rodPosInput.value - rodPos);
+         }
+
+         if (temp >= 1000) {
+             meltdown = true;
+             alert("Reactor Core Meltdown");
+         }
+     }
+
+     draw();
+     setInterval(() => {
+         update();
+         draw();
+     }, 1/144);
+    </script>
+</html>
